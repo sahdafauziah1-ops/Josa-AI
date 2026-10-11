@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Josa AI - Study & Productivity Assistant</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Kustomisasi scrollbar agar senada */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #db2777; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 h-screen flex flex-col font-sans">
+
+    <!-- Header / Navbar -->
+    <header class="bg-slate-900 border-b border-slate-800 p-4 flex justify-between items-center shadow-lg">
+        <div class="flex items-center space-x-3">
+            <div class="bg-gradient-to-tr from-pink-600 to-rose-500 text-white p-2.5 rounded-xl font-bold shadow-lg shadow-pink-600/30">
+                <i class="fa-solid fa-robot text-lg"></i>
+            </div>
+            <div>
+                <h1 class="text-base font-bold tracking-wide text-white">Josa <span class="text-pink-500">AI</span></h1>
+                <p class="text-xs text-slate-400">Personal Study & Productivity Assistant</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-3">
+            <div class="hidden sm:flex items-center space-x-2 bg-slate-800/80 border border-slate-700/60 px-3 py-1.5 rounded-lg text-xs">
+                <span class="w-2 h-2 bg-pink-500 rounded-full animate-ping"></span>
+                <span class="text-slate-300">Dark Mode Active</span>
+            </div>
+            <button onclick="clearChat()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-pink-400 text-xs px-3 py-1.5 rounded-lg border border-slate-700 transition">
+                <i class="fa-solid fa-rotate-right mr-1"></i> Reset Sesi
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="flex-1 flex overflow-hidden">
+        
+        <!-- Sidebar Pengaturan (Parameter Kreatif) -->
+        <aside class="w-64 bg-slate-900 border-r border-slate-800 hidden md:flex flex-col p-4 space-y-4">
+            <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Konfigurasi Parameter</h2>
+            
+            <div class="space-y-3 text-sm">
+                <div>
+                    <label class="block text-slate-300 font-medium mb-1 text-xs">Domain Pengetahuan</label>
+                    <select id="domainSelect" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-pink-500">
+                        <option value="Edukasi & Umum">Edukasi & Umum</option>
+                        <option value="Sains & Matematika">Sains & Matematika</option>
+                        <option value="Pemrograman & Coding">Pemrograman & Coding</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-slate-300 font-medium mb-1 text-xs">Gaya Bahasa (Tone)</label>
+                    <select id="toneSelect" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-pink-500">
+                        <option value="Ramah & Menyemangati">Ramah & Menyemangati</option>
+                        <option value="Formal & Akademis">Formal & Akademis</option>
+                        <option value="Singkat & Padat">Singkat & Padat</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mt-auto bg-slate-950 p-3 rounded-xl border border-pink-900/40 text-xs text-slate-300 shadow-inner">
+                <p class="font-semibold mb-1 text-pink-400"><i class="fa-solid fa-lightbulb"></i> Tips Kreatif:</p>
+                <p class="text-slate-400 leading-relaxed">Sesuaikan parameter di atas untuk melihat perubahan persona respons dari Josa AI.</p>
+            </div>
+        </aside>
+
+        <!-- Chat Area -->
+        <main class="flex-1 flex flex-col bg-slate-950">
+            <!-- Chat Messages Container -->
+            <div id="chatContainer" class="flex-1 overflow-y-auto p-4 space-y-4">
+                <!-- Welcome Message -->
+                <div class="flex items-start space-x-3">
+                    <div class="bg-gradient-to-tr from-pink-600 to-rose-500 text-white w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 font-bold shadow-md shadow-pink-600/30">
+                        <i class="fa-solid fa-robot text-xs"></i>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 p-3.5 rounded-2xl rounded-tl-none shadow-md max-w-[80%] text-slate-200 text-sm">
+                        Halo! Saya <strong class="text-pink-400">Josa AI</strong>, asisten belajar pribadi Anda. Ada materi pelajaran, latihan soal, atau jadwal belajar yang ingin kita diskusikan hari ini? 🚀
+                    </div>
+                </div>
+            </div>
+
+            <!-- Typing Indicator -->
+            <div id="typingIndicator" class="hidden px-4 py-2 flex items-center space-x-2 text-pink-400 text-xs italic">
+                <div class="bg-pink-600 text-white w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-xs shadow-md shadow-pink-600/40">
+                    <i class="fa-solid fa-robot"></i>
+                </div>
+                <span>Josa AI sedang mengetik...</span>
+            </div>
+
+            <!-- Quick Suggestion Buttons -->
+            <div class="px-4 py-2 bg-slate-950 flex gap-2 overflow-x-auto text-xs">
+                <button onclick="sendQuickPrompt('Buatkan jadwal belajar metode Pomodoro untuk ujian')" class="bg-slate-900 border border-slate-800 hover:border-pink-500/60 hover:bg-slate-800 text-slate-300 hover:text-pink-400 px-3.5 py-2 rounded-full whitespace-nowrap transition shadow-sm">
+                    📅 Jadwal Belajar Pomodoro
+                </button>
+                <button onclick="sendQuickPrompt('Jelaskan konsep dasar bahasa pemrograman Python')" class="bg-slate-900 border border-slate-800 hover:border-pink-500/60 hover:bg-slate-800 text-slate-300 hover:text-pink-400 px-3.5 py-2 rounded-full whitespace-nowrap transition shadow-sm">
+                    🐍 Belajar Dasar Python
+                </button>
+                <button onclick="sendQuickPrompt('Berikan 3 tips ampuh untuk meningkatkan produktivitas belajar')" class="bg-slate-900 border border-slate-800 hover:border-pink-500/60 hover:bg-slate-800 text-slate-300 hover:text-pink-400 px-3.5 py-2 rounded-full whitespace-nowrap transition shadow-sm">
+                    💡 Tips Produktivitas
+                </button>
+            </div>
+
+            <!-- Input Form -->
+            <div class="bg-slate-900 border-t border-slate-800 p-4">
+                <form id="chatForm" class="flex items-center space-x-2">
+                    <input 
+                        type="text" 
+                        id="userInput" 
+                        placeholder="Ketik pertanyaan atau materi yang ingin dipelajari..." 
+                        autocomplete="off"
+                        required
+                        class="flex-1 bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                    >
+                    <button 
+                        type="submit" 
+                        class="bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white px-5 py-3 rounded-xl font-medium text-sm transition flex items-center justify-center shadow-lg shadow-pink-600/30">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <!-- JavaScript Logika -->
+    <script>
+        const chatContainer = document.getElementById('chatContainer');
+        const chatForm = document.getElementById('chatForm');
+        const userInput = document.getElementById('userInput');
+        const typingIndicator = document.getElementById('typingIndicator');
+        const domainSelect = document.getElementById('domainSelect');
+        const toneSelect = document.getElementById('toneSelect');
+
+        chatForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const messageText = userInput.value.trim();
+            if (!messageText) return;
+
+            // 1. Tampilkan pesan User
+            appendMessage(messageText, 'user');
+            userInput.value = '';
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            // 2. Tampilkan indikator mengetik
+            typingIndicator.classList.remove('hidden');
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            // 3. Ambil parameter kreatif
+            const currentDomain = domainSelect.value;
+            const currentTone = toneSelect.value;
+
+            // 4. Simulasi respons cerdas setelah 1 detik
+            setTimeout(() => {
+                typingIndicator.classList.add('hidden');
+                let botReply = generateSmartSimulation(messageText, currentDomain, currentTone);
+                appendMessage(botReply, 'bot');
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }, 1000);
+        });
+
+        function sendQuickPrompt(text) {
+            userInput.value = text;
+            chatForm.dispatchEvent(new Event('submit'));
+        }
+
+        function clearChat() {
+            chatContainer.innerHTML = `
+                <div class="flex items-start space-x-3">
+                    <div class="bg-gradient-to-tr from-pink-600 to-rose-500 text-white w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 font-bold shadow-md shadow-pink-600/30">
+                        <i class="fa-solid fa-robot text-xs"></i>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 p-3.5 rounded-2xl rounded-tl-none shadow-md max-w-[80%] text-slate-200 text-sm">
+                        Sesi telah direset. Halo kembali bersama Josa AI! Ada hal lain yang ingin kita diskusikan? 🚀
+                    </div>
+                </div>
+            `;
+        }
+
+        function generateSmartSimulation(prompt, domain, tone) {
+            let prefix = "";
+            if (tone.includes("Ramah")) prefix = "Halo! Pertanyaan yang sangat menarik 😊 Mari kita bahas bersama ya:\n\n";
+            if (tone.includes("Formal")) prefix = "Baik, berikut adalah analisis dan tinjauan terstruktur terkait hal tersebut:\n\n";
+            if (tone.includes("Singkat")) prefix = "Poin penting:\n\n";
+
+            return `${prefix}Mengenai topik **"${prompt}"** dalam cakupan **${domain}**, Josa AI merangkum penjelasannya sebagai berikut:\n\n* **Konsep Utama:** Poin ini berfokus pada pemahaman dasar yang relevan dengan kebutuhan Anda.\n* **Penerapan Praktis:** Dapat langsung diimplementasikan dalam aktivitas belajar atau proyek harian.\n* **Rekomendasi Josa:** Pertahankan konsistensi belajar agar hasilnya semakin maksimal! 🎯`;
+        }
+
+        function appendMessage(text, sender) {
+            const isUser = sender === 'user';
+            const wrapperDiv = document.createElement('div');
+            wrapperDiv.className = `flex items-start space-x-3 ${isUser ? 'flex-row-reverse space-x-reverse' : ''}`;
+
+            const avatarDiv = document.createElement('div');
+            avatarDiv.className = isUser 
+                ? 'bg-slate-800 border border-slate-700 text-slate-300 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-xs shadow-sm' 
+                : 'bg-gradient-to-tr from-pink-600 to-rose-500 text-white w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-xs shadow-md shadow-pink-600/30';
+            avatarDiv.innerHTML = isUser ? '<i class="fa-solid fa-user text-xs"></i>' : '<i class="fa-solid fa-robot text-xs"></i>';
+
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = isUser 
+                ? 'bg-gradient-to-r from-pink-600 to-rose-600 text-white p-3.5 rounded-2xl rounded-tr-none shadow-md shadow-pink-600/20 max-w-[80%] text-sm leading-relaxed' 
+                : 'bg-slate-900 border border-slate-800 p-3.5 rounded-2xl rounded-tl-none shadow-md max-w-[80%] text-slate-200 text-sm leading-relaxed';
+            
+            bubbleDiv.innerHTML = text
+                .replace(/\*\*(.*?)\*\*/g, '<strong class="text-pink-400">$1</strong>')
+                .replace(/^\* (.*$)/gim, '• $1')
+                .replace(/\n/g, '<br>');
+
+            wrapperDiv.appendChild(avatarDiv);
+            wrapperDiv.appendChild(bubbleDiv);
+            chatContainer.appendChild(wrapperDiv);
+        }
+    </script>
+</body>
+</html>
